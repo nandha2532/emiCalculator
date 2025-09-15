@@ -13,12 +13,19 @@ h1 {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  text-align: left;
+}
+
+.form label {
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 .form input {
   padding: 10px;
   font-size: 16px;
+  margin-bottom: 5px;
 }
 
 .form button {
@@ -29,6 +36,7 @@ h1 {
   font-size: 16px;
   cursor: pointer;
   border-radius: 5px;
+  margin-top: 15px;
 }
 
 .form button:hover {
@@ -42,21 +50,44 @@ h1 {
   text-decoration: underline;
 }
 
+.result-box {
+  margin-top: 20px;
+  padding: 15px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #fdfdfd;
+  text-align: left;
+}
+
+.result-box h2 {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
 .result-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
 }
 
 .result-table th,
 .result-table td {
   border: 1px solid #ddd;
   padding: 10px;
-  text-align: center;
+  text-align: left;
 }
 
 .result-table th {
-  background-color: #f2f2f2;
+  background-color: #d6e9ff; /* Light Blue Header */
+  font-weight: bold;
+  width: 50%;
+}
+
+.result-table td {
+  font-weight: bold;
+}
+
+.result-table td.total {
+  font-size: 18px;
   font-weight: bold;
 }
 
@@ -68,15 +99,6 @@ h1 {
   background-color: #ffffff;
 }
 
-.result-table td {
-  font-weight: bold;
-}
-
-.result-table td.total {
-  font-size: 18px;
-  color: #000;
-}
-
-.highlight {
-  background-color: #fff3cd; /* light yellow highlight */
+.green-row {
+  background-color: #d4edda !important; /* Light Green for Total */
 }
