@@ -12,7 +12,7 @@ function App() {
     if (!loanAmount || !months) return;
 
     const principalPerMonth = loanAmount / months;
-    const interestRate = 0.02; // 2% simple interest reducing
+    const interestRate = 0.02; // 2% reducing simple interest
 
     let result = [];
     let remaining = loanAmount;
@@ -44,44 +44,52 @@ function App() {
       <h1>Loan EMI Calculator</h1>
 
       <div className="form">
+        <label>Loan Amount (₹)</label>
         <input
           type="number"
           placeholder="Enter Loan Amount"
           value={loanAmount}
           onChange={(e) => setLoanAmount(e.target.value)}
         />
+
+        <label>Number of Months</label>
         <input
           type="number"
           placeholder="Enter Number of Months"
           value={months}
           onChange={(e) => setMonths(e.target.value)}
         />
+
+        <label>Current Month</label>
         <input
           type="number"
           placeholder="Enter Current Month"
           value={currentMonth}
           onChange={(e) => setCurrentMonth(e.target.value)}
         />
+
         <button onClick={calculateEMI}>Calculate</button>
       </div>
 
       {currentData && (
-        <div className="current-result">
+        <div className="result-box">
           <h2>Result for Month {currentData.month}</h2>
           <table className="result-table">
-            <thead>
+            <tbody>
               <tr>
                 <th>Month</th>
-                <th>Principal</th>
-                <th>Interest</th>
-                <th>Total EMI</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="highlight">
                 <td>{currentData.month}</td>
+              </tr>
+              <tr>
+                <th>Principal</th>
                 <td>₹{currentData.principal}</td>
+              </tr>
+              <tr>
+                <th>Interest</th>
                 <td>₹{currentData.interest}</td>
+              </tr>
+              <tr className="green-row">
+                <th>Total EMI</th>
                 <td className="total">₹{currentData.total}</td>
               </tr>
             </tbody>
