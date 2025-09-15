@@ -5,68 +5,69 @@ function App() {
   const [loanAmount, setLoanAmount] = useState("");
   const [months, setMonths] = useState("");
   const [currentMonth, setCurrentMonth] = useState("");
-  const [results, setResults] = useState([]);
+  const [calculation, setCalculation] = useState([]);
   const [showFull, setShowFull] = useState(false);
 
   const calculateEMI = () => {
     if (!loanAmount || !months) return;
 
-    const monthlyPrincipal = loanAmount / months;
-    const resultsArr = [];
+    const principalPerMonth = loanAmount / months;
+    const interestRate = 0.02; // 2% simple interest reducing
+
+    let result = [];
+    let remaining = loanAmount;
 
     for (let i = 1; i <= months; i++) {
-      const interest = ((months - i + 1) * 100); // sample logic, same as your excel
-      const total = monthlyPrincipal + interest;
-      resultsArr.push({
+      const interest = Math.round((remaining * interestRate) / months);
+      const total = Math.round(principalPerMonth + interest);
+      result.push({
         month: i,
-        principal: monthlyPrincipal,
+        principal: Math.round(principalPerMonth),
         interest,
         total,
       });
+      remaining -= principalPerMonth;
     }
 
-    setResults(resultsArr);
+    setCalculation(result);
   };
 
-  return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Loan EMI Calculator</h1>
+  const getCurrentMonthData = () => {
+    if (!currentMonth || !calculation.length) return null;
+    return calculation.find((c) => c.month === parseInt(currentMonth));
+  };
 
-      {/* Inputs */}
-      <div style={{ marginBottom: "10px" }}>
+  const currentData = getCurrentMonthData();
+
+  return (
+    <div className="container">
+      <h1>Loan EMI Calculator</h1>
+
+      <div className="form">
         <input
           type="number"
-          placeholder="Loan Amount (Rs)"
+          placeholder="Enter Loan Amount"
           value={loanAmount}
           onChange={(e) => setLoanAmount(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         />
         <input
           type="number"
-          placeholder="Number of Months"
+          placeholder="Enter Number of Months"
           value={months}
           onChange={(e) => setMonths(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         />
         <input
           type="number"
-          placeholder="Current Month"
+          placeholder="Enter Current Month"
           value={currentMonth}
           onChange={(e) => setCurrentMonth(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         />
-        <button
-          onClick={calculateEMI}
-          style={{ width: "100%", padding: "10px", background: "#007bff", color: "white", border: "none", borderRadius: "5px" }}
-        >
-          Calculate
-        </button>
+        <button onClick={calculateEMI}>Calculate</button>
       </div>
 
-      {/* Current Month Result */}
-      {currentMonth && results.length > 0 && results[currentMonth - 1] && (
-        <div>
-          <h2 style={{ marginTop: "20px" }}>Result for Month {currentMonth}</h2>
+      {currentData && (
+        <div className="current-result">
+          <h2>Result for Month {currentData.month}</h2>
           <table className="result-table">
             <thead>
               <tr>
@@ -77,50 +78,47 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>{results[currentMonth - 1].month}</td>
-                <td>₹{results[currentMonth - 1].principal.toFixed(0)}</td>
-                <td>₹{results[currentMonth - 1].interest.toFixed(0)}</td>
-                <td className="total">₹{results[currentMonth - 1].total.toFixed(0)}</td>
+              <tr className="highlight">
+                <td>{currentData.month}</td>
+                <td>₹{currentData.principal}</td>
+                <td>₹{currentData.interest}</td>
+                <td className="total">₹{currentData.total}</td>
               </tr>
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Full Calculation */}
-      {results.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <button
-            onClick={() => setShowFull(!showFull)}
-            style={{ background: "none", color: "#007bff", border: "none", cursor: "pointer" }}
-          >
-            {showFull ? "Hide Full Calculation" : "Show Full Calculation"}
-          </button>
+      {calculation.length > 0 && (
+        <p
+          className="show-link"
+          onClick={() => setShowFull(!showFull)}
+        >
+          {showFull ? "Hide Full Calculation" : "Show Full Calculation"}
+        </p>
+      )}
 
-          {showFull && (
-            <table className="result-table" style={{ marginTop: "10px" }}>
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Principal</th>
-                  <th>Interest</th>
-                  <th>Total EMI</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r, idx) => (
-                  <tr key={idx}>
-                    <td>{r.month}</td>
-                    <td>₹{r.principal.toFixed(0)}</td>
-                    <td>₹{r.interest.toFixed(0)}</td>
-                    <td className="total">₹{r.total.toFixed(0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+      {showFull && (
+        <table className="result-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Principal</th>
+              <th>Interest</th>
+              <th>Total EMI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {calculation.map((row, index) => (
+              <tr key={index} className={index % 2 === 0 ? "even" : "odd"}>
+                <td>{row.month}</td>
+                <td>₹{row.principal}</td>
+                <td>₹{row.interest}</td>
+                <td className="total">₹{row.total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
