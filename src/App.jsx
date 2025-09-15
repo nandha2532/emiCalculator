@@ -7,61 +7,79 @@ function App() {
   const [currentMonth, setCurrentMonth] = useState("");
   const [calculation, setCalculation] = useState([]);
   const [showFull, setShowFull] = useState(false);
+  const baseRate = 0.02; // 2% base used to match your sheet (adjust if needed)
+
+  const formatCurrency = (n) => {
+    if (n === null || n === undefined || Number.isNaN(n)) return "₹0";
+    return "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  };
 
   const calculateEMI = () => {
-    if (!loanAmount || !months) return;
+    const loan = Number(loanAmount);
+    const m = parseInt(months, 10);
 
-    const principalPerMonth = loanAmount / months;
-    const interestRate = 0.02; // 2% reducing simple interest
+    if (!loan || !m || m <= 0) {
+      setCalculation([]);
+      return;
+    }
 
-    let result = [];
-    let remaining = loanAmount;
+    const principalPerMonth = loan / m; // keep fractional internally, round for display
+    const result = [];
 
-    for (let i = 1; i <= months; i++) {
-      const interest = Math.round((remaining * interestRate) / months);
-      const total = Math.round(principalPerMonth + interest);
+    for (let i = 1; i <= m; i++) {
+      // decreasing interest proportional to (months - i + 1)/months
+      const interest = Math.round(loan * baseRate * ((m - i + 1) / m));
+      const principal = Math.round(principalPerMonth);
+      const total = Math.round(principal + interest);
       result.push({
         month: i,
-        principal: Math.round(principalPerMonth),
+        principal,
         interest,
         total,
       });
-      remaining -= principalPerMonth;
     }
 
     setCalculation(result);
+    // keep showFull state as is (user controls)
   };
 
   const getCurrentMonthData = () => {
-    if (!currentMonth || !calculation.length) return null;
-    return calculation.find((c) => c.month === parseInt(currentMonth));
+    const cm = parseInt(currentMonth, 10);
+    if (!cm || calculation.length === 0) return null;
+    if (cm < 1 || cm > calculation.length) return null;
+    return calculation.find((c) => c.month === cm) || null;
   };
 
   const currentData = getCurrentMonthData();
+
+  const totalPayment = calculation.reduce((s, r) => s + (r.total || 0), 0);
 
   return (
     <div className="container">
       <h1>Loan EMI Calculator</h1>
 
       <div className="form">
-        <label>Loan Amount (₹)</label>
+        <label htmlFor="loan">Loan Amount (₹)</label>
         <input
+          id="loan"
           type="number"
           placeholder="Enter Loan Amount"
           value={loanAmount}
           onChange={(e) => setLoanAmount(e.target.value)}
         />
 
-        <label>Number of Months</label>
+        <label htmlFor="months">Number of Months</label>
         <input
+          id="months"
           type="number"
           placeholder="Enter Number of Months"
           value={months}
           onChange={(e) => setMonths(e.target.value)}
         />
 
-        <label>Current Month</label>
+        <label htmlFor="current">Current Month</label>
         <input
+          id="current"
           type="number"
           placeholder="Enter Current Month"
           value={currentMonth}
@@ -71,10 +89,12 @@ function App() {
         <button onClick={calculateEMI}>Calculate</button>
       </div>
 
-      {currentData && (
+      {/* CURRENT MONTH RESULT */}
+      {currentData ? (
         <div className="result-box">
           <h2>Result for Month {currentData.month}</h2>
-          <table className="result-table">
+
+          <table className="single-result-table">
             <tbody>
               <tr>
                 <th>Month</th>
@@ -82,32 +102,36 @@ function App() {
               </tr>
               <tr>
                 <th>Principal</th>
-                <td>₹{currentData.principal}</td>
+                <td>{formatCurrency(currentData.principal)}</td>
               </tr>
               <tr>
                 <th>Interest</th>
-                <td>₹{currentData.interest}</td>
+                <td>{formatCurrency(currentData.interest)}</td>
               </tr>
               <tr className="green-row">
                 <th>Total EMI</th>
-                <td className="total">₹{currentData.total}</td>
+                <td className="big-total">{formatCurrency(currentData.total)}</td>
               </tr>
             </tbody>
           </table>
         </div>
+      ) : (
+        // If user entered a current month outside range, show a hint
+        currentMonth && calculation.length > 0 && (
+          <div className="note">Enter a Current Month between 1 and {calculation.length}</div>
+        )
       )}
 
+      {/* SHOW / HIDE FULL TABLE */}
       {calculation.length > 0 && (
-        <p
-          className="show-link"
-          onClick={() => setShowFull(!showFull)}
-        >
+        <p className="show-link" onClick={() => setShowFull(!showFull)}>
           {showFull ? "Hide Full Calculation" : "Show Full Calculation"}
         </p>
       )}
 
-      {showFull && (
-        <table className="result-table">
+      {/* FULL TABLE */}
+      {showFull && calculation.length > 0 && (
+        <table className="result-table full">
           <thead>
             <tr>
               <th>Month</th>
@@ -117,14 +141,20 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {calculation.map((row, index) => (
-              <tr key={index} className={index % 2 === 0 ? "even" : "odd"}>
+            {calculation.map((row, idx) => (
+              <tr key={row.month} className={idx % 2 === 0 ? "even" : "odd"}>
                 <td>{row.month}</td>
-                <td>₹{row.principal}</td>
-                <td>₹{row.interest}</td>
-                <td className="total">₹{row.total}</td>
+                <td>{formatCurrency(row.principal)}</td>
+                <td>{formatCurrency(row.interest)}</td>
+                <td className="big-total">{formatCurrency(row.total)}</td>
               </tr>
             ))}
+
+            {/* Total payment row */}
+            <tr className="summary-row">
+              <th colSpan={3}>Total Payment</th>
+              <td className="green-big">{formatCurrency(totalPayment)}</td>
+            </tr>
           </tbody>
         </table>
       )}
